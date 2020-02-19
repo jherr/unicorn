@@ -1,47 +1,48 @@
-fetch('CuteUnicorn.svg')
-  .then(data => data.text())
-  .then(svg => {
-    document.body.innerHTML = svg;
+(async () => {
+  const images = await Promise.all(
+    [
+      'eiffel12345.svg',
+      'eiffel12345-10.svg',
+      'eiffel12345-20.svg',
+      'eiffel12345-30.svg',
+      'eiffel12345-40.svg',
+      'eiffel12345-50.svg',
+      'eiffel12345-60.svg',
+      'eiffel12345-70.svg',
+      'eiffel12345-80.svg',
+    ].map((img) => fetch(img).then(data => data.text()))
+  );
+
+  const widths = [ 40, 46, 51, 54, 56, 56, 54, 51, 46 ];
+
+  let img = 0;
+  window.setInterval(() => {
+    document.body.innerHTML = images[img];
 
     const svgEl = document.querySelector('svg');
-    svgEl.setAttribute('width', 120 * 10);
-    svgEl.setAttribute('height', 80 * 10);
-    svgEl.setAttribute('viewBox', "0 0 92 80");
-
+    svgEl.style.marginLeft = `${(56 - widths[img]) * 5}px`;
+    svgEl.setAttribute('width', widths[img] * 10);
+    svgEl.setAttribute('height', 90 * 10);
+    svgEl.setAttribute('viewBox', `0 0 ${widths[img]} 90`);
+  
     const layers = 
       Array.from(document.querySelectorAll('g')).map(element => ({
         element,
         polygons: Array.from(element.querySelectorAll('polygon'))
       }));
-
-    let layer = 0;
-    const dropLayer = () => {
-      layers.forEach(({ element, polygons }, index) => {
-        polygons.forEach(layerEl => {
-          layerEl.style.fill = 'black';
-          const offset = index - layer;
-          const translate = index / 30;
-          if (offset < 0) {
-            layerEl.style.fillOpacity = 0; 
-            layerEl.style.stroke = 'black';
-            layerEl.style.strokeWidth = 0.5;
-            layerEl.style.strokeOpacity = 0.5 + (offset / (layers.length * 2.5));
-            element.setAttribute('transform', `translate(${translate} ${translate})`);
-          } else if (offset === 0) {
-            layerEl.style.fillOpacity = 0.5;
-            layerEl.style.strokeOpacity = 0.5;
-            element.setAttribute('transform', `translate(${translate} ${translate})`);
-          } else {
-            layerEl.style.fillOpacity = 0.0;
-            layerEl.style.strokeOpacity = 0.0;
-            element.setAttribute('transform', `translate(0 0)`);
-          }
-        });
+  
+    let layer = layers.length;
+    layers.forEach(({ element, polygons }, index) => {
+      polygons.forEach(layerEl => {
+        layerEl.style.fill = 'black';
+        const offset = index - layer;
+        layerEl.style.fillOpacity = 0; 
+        layerEl.style.stroke = 'black';
+        layerEl.style.strokeWidth = 0.5;
+        layerEl.style.strokeOpacity = 0.5 + (offset / (layers.length * 2.5));
       });
-      if (layer < layers.length) {
-        layer += 1;
-        window.requestAnimationFrame(dropLayer);
-      }
-    };
-    window.requestAnimationFrame(dropLayer);
-  });
+    });
+
+    img = (img + 1) % images.length;
+  }, 200);
+})();
